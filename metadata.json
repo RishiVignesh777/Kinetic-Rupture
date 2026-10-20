@@ -1,0 +1,6 @@
+{
+  "name": "Kinetic Rupture",
+  "description": "3D Fast-Paced Hack-and-Slash Arena Momentum Shooter with vector-shifting, gravity boots, kinetic blades, and adaptive darksynth music.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
