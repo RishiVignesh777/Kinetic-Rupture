@@ -33,6 +33,7 @@ import {
   createVanguardMechModel,
 } from './models.ts';
 import { ParticleSystem } from './particles.ts';
+import { PlayerTrailSystem } from './trail.ts';
 
 export const ARENAS: Record<ArenaId, ArenaConfig> = {
   'neon-roofs': {
@@ -82,6 +83,7 @@ export class GameEngine {
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private particles: ParticleSystem;
+  private playerTrail: PlayerTrailSystem;
   private materials: ReturnType<typeof createCyberMaterials>;
 
   // Game state
@@ -232,9 +234,10 @@ export class GameEngine {
     const hemiLight = new THREE.HemisphereLight(0x00f0ff, 0x110022, 1.2);
     this.scene.add(hemiLight);
 
-    // 5. Materials & Particles
+    // 5. Materials, Particles & Player Trails
     this.materials = createCyberMaterials();
     this.particles = new ParticleSystem(this.scene);
+    this.playerTrail = new PlayerTrailSystem(this.scene);
 
     // 6. Player Model
     const playerModelData = createPlayerModel(this.materials);
@@ -369,6 +372,7 @@ export class GameEngine {
     this.enemies = [];
     this.projectiles.forEach((p) => this.scene.remove(p.mesh));
     this.projectiles = [];
+    this.playerTrail?.clear();
 
     // Reset player position
     this.playerPos.set(0, 4, 0);
@@ -912,6 +916,21 @@ export class GameEngine {
     // 1. Player Physics & Vector Shift
     this.updatePlayerMovement(dt);
 
+    // Update Player Neon Light Streak Trails & Dash Afterimages
+    this.playerTrail.update(
+      this.playerPos,
+      this.playerYaw,
+      this.playerStats.speedKmh,
+      this.isDashing,
+      this.isWallRunning,
+      this.playerStats.isOvercharged,
+      this.playerGroup,
+      this.isSlashing,
+      this.bladeGroup,
+      dt,
+      this.camera
+    );
+
     // 2. Weapon & Combat Timers
     if (this.isSlashing) {
       this.slashTimer += dt;
@@ -1351,6 +1370,7 @@ export class GameEngine {
     window.removeEventListener('resize', this.handleResize);
 
     this.particles.dispose();
+    this.playerTrail.dispose();
     this.renderer.dispose();
     if (this.container && this.renderer.domElement) {
       this.container.removeChild(this.renderer.domElement);
